@@ -1,25 +1,18 @@
-import logo from './logo.svg';
 import './App.css';
+import Settings from "./components/Settings/Settings.jsx"
+import Canvas from "./components/Canvas/Canvas.jsx"
+import { useState } from 'react';
 
 function App() {
+  const [width, setWidth] = useState(20)
+  const [height, setHeight] = useState(20)
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+   <div className='App'>
+    <Settings setWidth={setWidth} setHeight={setHeight}/>
+    <Canvas width={width} height={height}/>
+   </div> 
+  )
 }
 
 export default App;
