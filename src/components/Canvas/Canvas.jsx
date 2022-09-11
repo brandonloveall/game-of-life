@@ -1,7 +1,6 @@
 import React from "react"
 import "./Canvas.css"
 import { useRef, useEffect } from "react"
-import { fireEvent } from "@testing-library/react"
 
 function Canvas(props){
     
@@ -36,13 +35,15 @@ function Canvas(props){
         let ctx = c.getContext("2d")
         ctx.fillStyle = "white"
         ctx.fillRect(x*40 - 39, y*40 - 39, 38, 38)
+        console.log(coords)
     }
 
     function removeSquare(x, y){
-        let c = document.getElemenyById("canvas")
+        let c = document.getElementById("canvas")
         let ctx = c.getContext("2d")
         ctx.fillStyle = "gray"
         ctx.fillRect(x*40 - 39, y*40 - 39, 38, 38)
+        console.log(coords)
     }
 
     function editSquares(e){
@@ -55,14 +56,18 @@ function Canvas(props){
         const squareY = Math.ceil(canvasY / 40)
 
         console.log(squareX + " " + squareY)
-        let color = ctx.getImageData(squareX*40 + 1, squareY*40 + 1, 1, 1).data
+        let color = ctx.getImageData(squareX*40 - 3, squareY*40 - 3, 1, 1).data
+        console.log(color)
         
-        if(color[0] = 128){
+        if(color[0] === 128){
             addSquare(squareX, squareY)
         coords.current.push([squareX, squareY])
         }
-        else if(color[0] = 256){
-            removeSquare()
+        else if(color[0] === 255){
+            removeSquare(squareX, squareY)
+            coords.current.splice(coords.current.findIndex(e => {
+                return e[0] === squareX && e[1] === squareY
+            }), 1)
         }
     }
 
