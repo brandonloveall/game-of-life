@@ -4,7 +4,7 @@ import { useRef, useEffect } from "react"
 
 function Canvas(props){
     
-    const coords = useRef(new Array())
+    const currentSquareCoords = useRef([])
 
     useEffect(() => {
         let c = document.getElementById("canvas")
@@ -24,7 +24,7 @@ function Canvas(props){
             ctx.stroke()
         }
 
-        coords.current.map((e) => {
+        currentSquareCoords.current.forEach((e) => {
             addSquare(e[0], e[1])
         })
 
@@ -35,7 +35,6 @@ function Canvas(props){
         let ctx = c.getContext("2d")
         ctx.fillStyle = "white"
         ctx.fillRect(x*40 - 39, y*40 - 39, 38, 38)
-        console.log(coords)
     }
 
     function removeSquare(x, y){
@@ -43,7 +42,6 @@ function Canvas(props){
         let ctx = c.getContext("2d")
         ctx.fillStyle = "gray"
         ctx.fillRect(x*40 - 39, y*40 - 39, 38, 38)
-        console.log(coords)
     }
 
     function editSquares(e){
@@ -55,25 +53,133 @@ function Canvas(props){
         const squareX = Math.ceil(canvasX / 40)
         const squareY = Math.ceil(canvasY / 40)
 
-        console.log(squareX + " " + squareY)
         let color = ctx.getImageData(squareX*40 - 3, squareY*40 - 3, 1, 1).data
-        console.log(color)
         
         if(color[0] === 128){
             addSquare(squareX, squareY)
-        coords.current.push([squareX, squareY])
+            currentSquareCoords.current.push([squareX, squareY])
         }
         else if(color[0] === 255){
             removeSquare(squareX, squareY)
-            coords.current.splice(coords.current.findIndex(e => {
+            currentSquareCoords.current.splice(currentSquareCoords.current.findIndex(e => {
                 return e[0] === squareX && e[1] === squareY
             }), 1)
         }
     }
 
+    function step(){
+        let createArr = []
+        let destroyArr = []
+        let c = document.getElementById("canvas")
+        let ctx = c.getContext("2d")
+        const createTally = {}
+        const destroyTally = {}
+
+        //CREATE 
+
+        for(let i = 0; i < currentSquareCoords.current.length; i++){
+            //TOP LEFT
+            if(ctx.getImageData(currentSquareCoords.current[i][0]*40 - 43, currentSquareCoords.current[i][1]*40 - 43, 1, 1).data[0] === 128){
+                               createArr.push([currentSquareCoords.current[i][0] - 1, currentSquareCoords.current[i][1] - 1])
+            }
+
+            //TOP MIDDLE
+            if(ctx.getImageData(currentSquareCoords.current[i][0]*40 - 3, currentSquareCoords.current[i][1]*40 - 43, 1, 1).data[0] === 128){
+                
+                createArr.push([currentSquareCoords.current[i][0], currentSquareCoords.current[i][1] - 1])
+            }
+
+            //TOP RIGHT
+            if(ctx.getImageData(currentSquareCoords.current[i][0]*40 + 37, currentSquareCoords.current[i][1]*40 - 43, 1, 1).data[0] === 128){
+                createArr.push([currentSquareCoords.current[i][0] + 1, currentSquareCoords.current[i][1] - 1])
+            }
+
+            //MIDDLE LEFT
+            if(ctx.getImageData(currentSquareCoords.current[i][0]*40 - 43, currentSquareCoords.current[i][1]*40 - 3, 1, 1).data[0] === 128){
+                createArr.push([currentSquareCoords.current[i][0] - 1, currentSquareCoords.current[i][1]])
+            }
+
+            //MIDDLE RIGHT
+            if(ctx.getImageData(currentSquareCoords.current[i][0]*40 + 37, currentSquareCoords.current[i][1]*40 - 3, 1, 1).data[0] === 128){
+                createArr.push([currentSquareCoords.current[i][0] + 1, currentSquareCoords.current[i][1]])
+            }
+
+            //BOTTOM LEFT
+            if(ctx.getImageData(currentSquareCoords.current[i][0]*40 - 43, currentSquareCoords.current[i][1]*40 + 37, 1, 1).data[0] === 128){
+                createArr.push([currentSquareCoords.current[i][0] - 1, currentSquareCoords.current[i][1] + 1])
+            }
+
+            //BOTTOM MIDDLE
+            if(ctx.getImageData(currentSquareCoords.current[i][0]*40 - 3, currentSquareCoords.current[i][1]*40 + 37, 1, 1).data[0] === 128){
+                createArr.push([currentSquareCoords.current[i][0], currentSquareCoords.current[i][1] + 1])
+            }
+
+            //BOTTOM RIGHT
+            if(ctx.getImageData(currentSquareCoords.current[i][0]*40 + 37, currentSquareCoords.current[i][1]*40 + 37, 1, 1).data[0] === 128){
+                createArr.push([currentSquareCoords.current[i][0] + 1, currentSquareCoords.current[i][1] + 1])
+            }
+        }
+
+        //DESTROY
+        for(let i = 0; i < currentSquareCoords.current.length; i++){
+            //TOP LEFT
+            if(ctx.getImageData(currentSquareCoords.current[i][0]*40 - 43, currentSquareCoords.current[i][1]*40 - 43, 1, 1).data[0] === 255){
+                destroyArr.push(currentSquareCoords.current[i])
+            }
+
+            //TOP MIDDLE
+            if(ctx.getImageData(currentSquareCoords.current[i][0]*40 - 3, currentSquareCoords.current[i][1]*40 - 43, 1, 1).data[0] === 255){
+                destroyArr.push(currentSquareCoords.current[i])
+            }
+
+            //TOP RIGHT
+            if(ctx.getImageData(currentSquareCoords.current[i][0]*40 + 37, currentSquareCoords.current[i][1]*40 - 43, 1, 1).data[0] === 255){
+                destroyArr.push(currentSquareCoords.current[i])
+            }
+
+            //MIDDLE LEFT
+            if(ctx.getImageData(currentSquareCoords.current[i][0]*40 - 43, currentSquareCoords.current[i][1]*40 - 3, 1, 1).data[0] === 255){
+                destroyArr.push(currentSquareCoords.current[i])
+            }
+
+            //MIDDLE RIGHT
+            if(ctx.getImageData(currentSquareCoords.current[i][0]*40 + 37, currentSquareCoords.current[i][1]*40 - 3, 1, 1).data[0] === 255){
+                destroyArr.push(currentSquareCoords.current[i])
+            }
+
+            //BOTTOM LEFT
+            if(ctx.getImageData(currentSquareCoords.current[i][0]*40 - 43, currentSquareCoords.current[i][1]*40 + 37, 1, 1).data[0] === 255){
+                destroyArr.push(currentSquareCoords.current[i])
+            }
+
+            //BOTTOM MIDDLE
+            if(ctx.getImageData(currentSquareCoords.current[i][0]*40 - 3, currentSquareCoords.current[i][1]*40 + 37, 1, 1).data[0] === 255){
+                destroyArr.push(currentSquareCoords.current[i])
+            }
+
+            //BOTTOM RIGHT
+            if(ctx.getImageData(currentSquareCoords.current[i][0]*40 + 37, currentSquareCoords.current[i][1]*40 + 37, 1, 1).data[0] === 255){
+                destroyArr.push(currentSquareCoords.current[i])
+            }
+        }
+
+        for(let i = 0; i < createArr.length; i++){
+            createTally[`${createArr[i][0]}, ${createArr[i][1]}`] = createTally[`${createArr[i][0]}, ${createArr[i][1]}`] ? createTally[`${createArr[i][0]}, ${createArr[i][1]}`] + 1 : 1
+        }
+        
+        for(let i = 0; i < destroyArr.length; i++){
+            destroyTally[`${destroyArr[i][0]}, ${destroyArr[i][1]}`] = destroyTally[`${destroyArr[i][0]}, ${destroyArr[i][1]}`] ? destroyTally[`${destroyArr[i][0]}, ${destroyArr[i][1]}`] + 1 : 1
+        }
+
+        for(const count in createTally){
+            if(count)
+            currentSquareCoords.current.push()
+        }
+    }
+
     return(
         <div className="Canvas">
-            <canvas id="canvas" height={props.height * 40} width={props.width * 40} onClick={(e) => {editSquares(e)}}></canvas>
+            <canvas id="canvas" height={props.height * 40} width={props.width * 40} onClick={(e) => {editSquares(e); step()}}></canvas>
         </div>
     )
 }
