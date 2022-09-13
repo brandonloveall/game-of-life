@@ -1,10 +1,23 @@
 import React from "react"
 import "./Canvas.css"
-import { useRef, useEffect } from "react"
+import { useRef, useEffect, useState } from "react"
 
 function Canvas(props){
     
     const currentSquareCoords = useRef([])
+    const [r, rerender] = useState(0)
+    const [c, crender] = useState(0)
+
+    useEffect(() => {
+        let c = document.getElementById("canvas")
+        let ctx = c.getContext("2d")
+        ctx.fillStyle = "gray"
+        ctx.fillRect(0, 0, props.width*40, props.height*40)
+
+        currentSquareCoords.current.forEach((e) => {
+            addSquare(e[0], e[1])
+        })
+    }, [r])
 
     useEffect(() => {
         let c = document.getElementById("canvas")
@@ -24,11 +37,11 @@ function Canvas(props){
             ctx.stroke()
         }
 
-        currentSquareCoords.current.forEach((e) => {
-            addSquare(e[0], e[1])
-        })
+        currentSquareCoords.current = []
 
-    }, [props.width, props.height])
+    }, [props.width, props.height, c])
+
+
 
     function addSquare(x, y){
         let c = document.getElementById("canvas")
@@ -72,11 +85,10 @@ function Canvas(props){
         let destroyArr = []
         let c = document.getElementById("canvas")
         let ctx = c.getContext("2d")
-        const createTally = {}
-        const destroyTally = {}
+        let createTally = {}
+        let destroyTally = {}
 
         //CREATE 
-
         for(let i = 0; i < currentSquareCoords.current.length; i++){
             //TOP LEFT
             if(ctx.getImageData(currentSquareCoords.current[i][0]*40 - 43, currentSquareCoords.current[i][1]*40 - 43, 1, 1).data[0] === 128){
@@ -163,23 +175,40 @@ function Canvas(props){
             }
         }
 
+        //PUSH TO CREATE TALLY
         for(let i = 0; i < createArr.length; i++){
-            createTally[`${createArr[i][0]}, ${createArr[i][1]}`] = createTally[`${createArr[i][0]}, ${createArr[i][1]}`] ? createTally[`${createArr[i][0]}, ${createArr[i][1]}`] + 1 : 1
+            createTally[`${createArr[i][0]}, ${createArr[i][1]}`] = createTally[`${createArr[i][0]}, ${createArr[i][1]}`] ? [createArr[i], createTally[`${createArr[i][0]}, ${createArr[i][1]}`][1] + 1] : [createArr[i], 1]
         }
         
         for(let i = 0; i < destroyArr.length; i++){
-            destroyTally[`${destroyArr[i][0]}, ${destroyArr[i][1]}`] = destroyTally[`${destroyArr[i][0]}, ${destroyArr[i][1]}`] ? destroyTally[`${destroyArr[i][0]}, ${destroyArr[i][1]}`] + 1 : 1
+            destroyTally[`${destroyArr[i][0]}, ${destroyArr[i][1]}`] = destroyTally[`${destroyArr[i][0]}, ${destroyArr[i][1]}`] ? [destroyArr[i], destroyTally[`${destroyArr[i][0]}, ${destroyArr[i][1]}`][1] + 1] : [destroyArr[i], 1]
         }
 
         for(const count in createTally){
-            if(count)
-            currentSquareCoords.current.push()
+            if(createTally[count][1] === 3){
+                currentSquareCoords.current.push(createTally[count][0])
+            }
         }
+
+        for(const count in destroyTally){
+            if(destroyTally[count][1] < 2 || destroyTally[count][1] > 3){
+                currentSquareCoords.current.forEach((e, i) => {
+                    if(e === destroyTally[count][0]){
+                        currentSquareCoords.current.splice(i, 1)
+                    }
+                })
+            }
+        }
+        rerender(r === 0 ? 1 : 0)
     }
 
     return(
         <div className="Canvas">
-            <canvas id="canvas" height={props.height * 40} width={props.width * 40} onClick={(e) => {editSquares(e); step()}}></canvas>
+            <canvas id="canvas" height={props.height * 40} width={props.width * 40} onClick={(e) => {editSquares(e);}}></canvas>
+            <div className="buttonholder">
+                <button onClick={() => step()}>step</button>
+                <button onClick={() => {crender(c === 1 ? 0 : 1)}}>Clear grid</button>
+            </div>
         </div>
     )
 }
